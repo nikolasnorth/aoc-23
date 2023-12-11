@@ -64,26 +64,42 @@ impl FromStr for Game {
     }
 }
 
+fn max_colour(colours: Vec<Colour>) -> Colour {
+    let (mut max_red, mut max_green, mut max_blue) = (0, 0, 0);
+    for colour in colours {
+        max_red = max(max_red, colour.red.unwrap_or(0));
+        max_green = max(max_green, colour.green.unwrap_or(0));
+        max_blue = max(max_blue, colour.blue.unwrap_or(0));
+    }
+    Colour{ red: Some(max_red), green: Some(max_green), blue: Some(max_blue) }
+}
+
 fn part1() -> Result<u32> {
     let mut result = 0;
     let f = File::open(FILENAME)?;
     let b = BufReader::new(f);
     for line in b.lines().flatten() {
-        let (mut max_red, mut max_green, mut max_blue) = (0, 0, 0);
         let game = line.parse::<Game>()?;
-        for sample in game.samples {
-            max_red = max(max_red, sample.red.unwrap_or(0));
-            max_green = max(max_green, sample.green.unwrap_or(0));
-            max_blue = max(max_blue, sample.blue.unwrap_or(0));
-        }
-        if max_red <= 12 && max_green <= 13 && max_blue <= 14 {
+        let Colour { red, green, blue } = max_colour(game.samples);
+        if red.unwrap_or(0) <= 12 && green.unwrap_or(0) <= 13 && blue.unwrap_or(0) <= 14 {
             result += game.id;
         }
     }
     Ok(result)
 }
 
-fn part2() {}
+fn part2() -> Result<u32> {
+    let mut result = 0;
+    let f = File::open(FILENAME)?;
+    let b = BufReader::new(f);
+    for line in b.lines().flatten() {
+        let game = line.parse::<Game>()?;
+        let Colour { red, green, blue } = max_colour(game.samples);
+        result += red.unwrap_or(0) as u32 * green.unwrap_or(0) as u32 * blue.unwrap_or(0) as u32;
+    }
+
+    Ok(result)
+}
 
 #[cfg(test)]
 mod tests {
@@ -91,7 +107,7 @@ mod tests {
 
     #[test]
     fn test_day02() {
-        assert_eq!(1, part1().unwrap());
-        // assert_eq!(1, part2());
+        assert_eq!(2101, part1().unwrap());
+        assert_eq!(58269, part2().unwrap());
     }
 }
